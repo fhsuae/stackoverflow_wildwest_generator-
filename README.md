@@ -6,7 +6,7 @@ Simple overview of use/purpose.
  
 ## Description
  
-Wildwest–themed poster generator software for the KU High School Computer Engineering competition 2025. 
+Wildwest–themed poster generator software for the KU High School Engineering competition 2025. 
  
 ## Getting Started
  
@@ -60,7 +60,7 @@ This project is licensed under the [NAME HERE] License - see the LICENSE.md file
 ## Acknowledgments
  
 Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
+* [Tkinter Documentation](https://docs.python.org/3/library/tk.html)
 * [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
 * [dbader](https://github.com/dbader/readme-template)
 * [zenorocha](https://gist.github.com/zenorocha/4526327)
