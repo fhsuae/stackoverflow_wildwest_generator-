@@ -2,11 +2,11 @@
  
 # Project Title
  
-Simple overview of use/purpose.
+Wildwest poster generator
  
 ## Description
  
-Wildwest–themed poster generator software for the KU High School Engineering competition 2025. 
+Wildwest–themed poster generator software for the KU High School Engineering competition 2025. Takes input from the user in the form of a name, location, and an image. The program uses this data and a poster template the user selects to output a Wildwest themed poster.  
  
 ## Getting Started
  
@@ -33,7 +33,7 @@ python main.py
  
 ## Help
  
-Any advise for common problems or issues.
+Any advice for common problems or issues.
 ```
 command to run if program contains helper info
 ```
