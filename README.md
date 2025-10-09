@@ -61,7 +61,5 @@ This project is licensed under the [NAME HERE] License - see the LICENSE.md file
  
 Inspiration, code snippets, etc.
 * [Tkinter Documentation](https://docs.python.org/3/library/tk.html)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+* [PIL Documentation](https://pillow.readthedocs.io/en/stable/)
+
