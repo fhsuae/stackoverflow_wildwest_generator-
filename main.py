@@ -5,6 +5,8 @@ import tkinter as tk
 window = tk.Tk()
 window.title("Wild West Poster Generator")
 window.geometry("1080x720")
+window.resizable(True,True)
+window.iconbitmap('./assets/horseshoe.ico')
 window.config(bg="orange2")
 
 # Window Customization
