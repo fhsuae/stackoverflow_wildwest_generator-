@@ -21,7 +21,7 @@ Please install the pip requirements:
 ### Installing
  
 * How/where to download your program
-* Any modifications needed to be made to files/folders
+* Any modifications needed to be made to files/folders 
  
 ### Executing program
  
@@ -30,13 +30,7 @@ Please install the pip requirements:
 ```
 python main.py
 ```
- 
-## Help
- 
-Any advice for common problems or issues.
-```
-command to run if program contains helper info
-```
+
  
 ## Authors
  
@@ -52,14 +46,10 @@ ex. [@DomPizzie](https://twitter.com/dompizzie)
     * See [commit change]() or See [release history]()
 * 0.1
     * Initial Release
- 
-## License
- 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+
  
 ## Acknowledgments
- 
-Inspiration, code snippets, etc.
+
 * [Tkinter Documentation](https://docs.python.org/3/library/tk.html)
 * [PIL Documentation](https://pillow.readthedocs.io/en/stable/)
 
