@@ -81,11 +81,17 @@ class WildWestPosterGenerator:
                                 activebackground="#3D2818", activeforeground="#FFD700")
             rb.pack(anchor="w", padx=20, pady=2)
 
+        # Additional general purpose button (moved above Generate)
+        general_btn = tk.Button(parent, text="Secret Feature", font=("Georgia", 12, "bold"),
+                                bg="#A0522D", fg="white", relief="raised", bd=3, padx=20, pady=8,
+                                command=self.general_function)
+        general_btn.pack(pady=(30, 10))
+
         # Generate & Save buttons
         generate_btn = tk.Button(parent, text="GENERATE POSTER", font=("Georgia", 14, "bold"),
                                  bg="#B8860B", fg="white", relief="raised", bd=4, padx=30, pady=12,
                                  command=self.generate_poster)
-        generate_btn.pack(pady=30)
+        generate_btn.pack(pady=10)
 
         save_btn = tk.Button(parent, text="SAVE POSTER", font=("Georgia", 12, "bold"),
                              bg="#CD853F", fg="white", relief="raised", bd=3, padx=20, pady=8,
@@ -272,18 +278,27 @@ class WildWestPosterGenerator:
         sepia = self.apply_sepia_filter(image)
         width, height = sepia.size
         border_size = 50
-        vintage_bg = Image.new('RGB', (width + border_size * 2, height + border_size * 2), '#5D4037')
+        vintage_bg = Image.new('RGB', (width + border_size * 2, height + border_size * 2 + 100), '#5D4037')
         vintage_bg.paste(sepia, (border_size, border_size))
         draw = ImageDraw.Draw(vintage_bg)
 
         # Use different font sizes for vintage style
         title_font = self.get_font(36, bold=True)
         subtitle_font = self.get_font(24)
+        location_font = self.get_font(20)
 
+        # Add title with user's name
         self.draw_centered_text(draw, f"{self.user_name.get()}",
-                                width // 2 + border_size, height + border_size + 10, title_font, "#D7CCC8")
-        self.draw_centered_text(draw, f"{self.user_location.get()}",
-                                width // 2 + border_size, height + border_size + 50, subtitle_font, "#BCAAA4")
+                                width // 2 + border_size, height + border_size + 20, title_font, "#D7CCC8")
+        
+        # Add location text - fixed to use the actual location
+        self.draw_centered_text(draw, f"From {self.user_location.get()}",
+                                width // 2 + border_size, height + border_size + 60, subtitle_font, "#BCAAA4")
+        
+        # Add vintage-style tagline
+        self.draw_centered_text(draw, "Wanted for Frontier Justice",
+                                width // 2 + border_size, height + border_size + 90, location_font, "#8D6E63")
+
         return vintage_bg
 
     def apply_gold_style(self, image):
@@ -363,6 +378,12 @@ class WildWestPosterGenerator:
                 messagebox.showinfo("Success", f"Poster saved successfully!\n{file_path}")
             except Exception as e:
                 messagebox.showerror("Error", f"Could not save poster: {str(e)}")
+
+    # ------------------------- General Function -------------------------
+    def general_function(self):
+        """General purpose function that can be customized later"""
+        # Add your custom functionality here
+        messagebox.showinfo("Secret Feature")
 
     # ------------------------- Run GUI -------------------------
     def run(self):
