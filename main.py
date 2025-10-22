@@ -1,404 +1,375 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from PIL import Image, ImageTk, ImageFilter, ImageEnhance
-import os
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk, ImageDraw, ImageFont, ExifTags
+
 
 class WildWestPosterGenerator:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Wild West Poster Generator")
-        self.root.geometry("1000x700")
-        self.root.configure(bg='#F5F5DC')
-        
+    def __init__(self):
+        # Window Setup
+        self.window = tk.Tk()
+        self.window.title("Wild West Poster Generator - ")
+        self.window.geometry("1200x800")
+        self.window.iconbitmap("horseshoe.ico")
+        self.window.config(bg="#2D1A0C")  # Dark brown background
+        self.window.eval('tk::PlaceWindow . center')  # Center window
+
         # Initialize variables
         self.original_image = None
         self.processed_image = None
-        self.photo_image = None
-        self.selected_template = "wanted"
-        
-        # Create the interface
-        self.create_widgets()
-        
-    def create_widgets(self):
+        self.preview_image = None
+        self.selected_template = tk.StringVar(value="classic")
+        self.user_name = tk.StringVar()
+        self.user_location = tk.StringVar()
+
+        # Build interface
+        self.create_interface()
+
+    # ------------------------- Interface -------------------------
+    def create_interface(self):
+        """Build GUI with Western styling"""
         # Header
-        header_frame = tk.Frame(self.root, bg='#8B4513', height=80)
-        header_frame.pack(fill='x', padx=10, pady=10)
+        header_frame = tk.Frame(self.window, bg="#8B4513", height=100)
+        header_frame.pack(fill="x", padx=10, pady=5)
         header_frame.pack_propagate(False)
-        
-        title_label = tk.Label(
-            header_frame,
-            text="Wild West Poster Generator",
-            font=('Arial', 24, 'bold'),
-            fg='white',
-            bg='#8B4513'
-        )
-        title_label.pack(expand=True)
-        
-        subtitle_label = tk.Label(
-            header_frame,
-            text="Create your own wanted poster in the style of the Old West",
-            font=('Arial', 12, 'italic'),
-            fg='#F5DEB3',
-            bg='#8B4513'
-        )
-        subtitle_label.pack(expand=True)
-        
-        # Main content area
-        main_frame = tk.Frame(self.root, bg='#F5F5DC')
-        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
-        
-        # Left panel - Controls
-        controls_frame = tk.Frame(main_frame, bg='white', relief='raised', bd=2)
-        controls_frame.pack(side='left', fill='y', padx=(0, 10))
-        
-        # Name input
-        name_frame = tk.Frame(controls_frame, bg='white')
-        name_frame.pack(fill='x', padx=10, pady=10)
-        
-        tk.Label(
-            name_frame,
-            text="Name:",
-            font=('Arial', 11, 'bold'),
-            bg='white'
-        ).pack(anchor='w')
-        
-        self.name_var = tk.StringVar()
-        self.name_var.trace('w', self.update_preview)
-        name_entry = tk.Entry(
-            name_frame,
-            textvariable=self.name_var,
-            font=('Arial', 11),
-            width=25
-        )
-        name_entry.pack(fill='x', pady=(5, 0))
-        
-        # Location input
-        location_frame = tk.Frame(controls_frame, bg='white')
-        location_frame.pack(fill='x', padx=10, pady=10)
-        
-        tk.Label(
-            location_frame,
-            text="Location:",
-            font=('Arial', 11, 'bold'),
-            bg='white'
-        ).pack(anchor='w')
-        
-        self.location_var = tk.StringVar()
-        self.location_var.trace('w', self.update_preview)
-        location_entry = tk.Entry(
-            location_frame,
-            textvariable=self.location_var,
-            font=('Arial', 11),
-            width=25
-        )
-        location_entry.pack(fill='x', pady=(5, 0))
-        
-        # Photo upload
-        photo_frame = tk.Frame(controls_frame, bg='white')
-        photo_frame.pack(fill='x', padx=10, pady=10)
-        
-        tk.Label(
-            photo_frame,
-            text="Upload Photo:",
-            font=('Arial', 11, 'bold'),
-            bg='white'
-        ).pack(anchor='w')
-        
-        upload_btn = tk.Button(
-            photo_frame,
-            text="Choose Image",
-            command=self.upload_image,
-            font=('Arial', 10),
-            bg='#8B4513',
-            fg='white',
-            relief='raised'
-        )
-        upload_btn.pack(fill='x', pady=(5, 0))
-        
+        tk.Label(header_frame, text="WILD WEST POSTER GENERATOR", font=("Old English Text MT", 28, "bold"),
+                 fg="#FFD700", bg="#8B4513").pack(expand=True)
+        tk.Label(header_frame, text="Create Your Own Wild West Immersion", font=("Georgia", 12, "italic"),
+                 fg="#F5DEB3", bg="#8B4513").pack(pady=(0, 10))
+
+        # Main Frame
+        main_frame = tk.Frame(self.window, bg="#2D1A0C")
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Left controls panel
+        left_frame = tk.Frame(main_frame, bg="#3D2818", width=400, relief="ridge", bd=2)
+        left_frame.pack(side="left", fill="y", padx=(0, 10))
+        left_frame.pack_propagate(False)
+        self.create_controls(left_frame)
+
+        # Right preview panel
+        right_frame = tk.Frame(main_frame, bg="#1A0F08", width=700, relief="ridge", bd=2)
+        right_frame.pack(side="right", fill="both", expand=True)
+        right_frame.pack_propagate(False)
+        self.create_preview(right_frame)
+
+    # ------------------------- Controls -------------------------
+    def create_controls(self, parent):
+        """Left panel: user input and buttons"""
+        tk.Label(parent, text="POSTER SETTINGS", font=("Georgia", 16, "bold"),
+                 fg="#FFD700", bg="#3D2818").pack(pady=20)
+
+        # Name
+        self.create_label_entry(parent, "Name:", self.user_name)
+        # Location
+        self.create_label_entry(parent, "Location:", self.user_location)
+
+        # Image upload
+        tk.Label(parent, text="Upload Photo:", font=("Georgia", 12, "bold"),
+                 fg="#F5DEB3", bg="#3D2818").pack(anchor="w", padx=20, pady=(20, 0))
+        upload_btn = tk.Button(parent, text="Choose Image File", font=("Georgia", 11, "bold"),
+                               bg="#8B4513", fg="white", relief="raised", bd=3, padx=20, pady=8,
+                               command=self.upload_image)
+        upload_btn.pack(pady=10)
+
         # Template selection
-        template_frame = tk.Frame(controls_frame, bg='white')
-        template_frame.pack(fill='x', padx=10, pady=10)
-        
-        tk.Label(
-            template_frame,
-            text="Select Template:",
-            font=('Arial', 11, 'bold'),
-            bg='white'
-        ).pack(anchor='w')
-        
-        # Template buttons
-        templates_frame = tk.Frame(template_frame, bg='white')
-        templates_frame.pack(fill='x', pady=(5, 0))
-        
-        self.template_var = tk.StringVar(value="wanted")
-        self.template_var.trace('w', self.update_preview)
-        
-        templates = [
-            ("Wanted Poster", "wanted"),
-            ("Sheriff's Notice", "sheriff"),
-            ("Reward Poster", "reward"),
-            ("Wild West Show", "show")
-        ]
-        
-        for text, value in templates:
-            rb = tk.Radiobutton(
-                templates_frame,
-                text=text,
-                variable=self.template_var,
-                value=value,
-                command=self.update_preview,
-                bg='white',
-                font=('Arial', 10)
-            )
-            rb.pack(anchor='w', pady=2)
-        
-        # Action buttons
-        actions_frame = tk.Frame(controls_frame, bg='white')
-        actions_frame.pack(fill='x', padx=10, pady=20)
-        
-        generate_btn = tk.Button(
-            actions_frame,
-            text="Generate Poster",
-            command=self.generate_poster,
-            font=('Arial', 12, 'bold'),
-            bg='#D2691E',
-            fg='white',
-            relief='raised',
-            height=2
-        )
-        generate_btn.pack(fill='x', pady=5)
-        
-        download_btn = tk.Button(
-            actions_frame,
-            text="Download Poster",
-            command=self.download_poster,
-            font=('Arial', 12, 'bold'),
-            bg='#CD853F',
-            fg='white',
-            relief='raised',
-            height=2
-        )
-        download_btn.pack(fill='x', pady=5)
-        
-        # Right panel - Preview
-        preview_frame = tk.Frame(main_frame, bg='white', relief='sunken', bd=2)
-        preview_frame.pack(side='right', fill='both', expand=True)
-        
-        tk.Label(
-            preview_frame,
-            text="Preview",
-            font=('Arial', 16, 'bold'),
-            bg='white'
-        ).pack(pady=10)
-        
-        # Preview canvas
-        self.preview_canvas = tk.Canvas(
-            preview_frame,
-            bg='#f0f0f0',
-            width=500,
-            height=400,
-            relief='sunken',
-            bd=1
-        )
-        self.preview_canvas.pack(pady=10, padx=10)
-        
-        # Preview text elements
-        self.name_text_id = self.preview_canvas.create_text(
-            250, 100,
-            text="YOUR NAME HERE",
-            font=('Times New Roman', 24, 'bold'),
-            fill='white',
-            width=400
-        )
-        
-        self.location_text_id = self.preview_canvas.create_text(
-            250, 300,
-            text="LOCATION",
-            font=('Times New Roman', 16),
-            fill='white',
-            width=400
-        )
-        
-        # Status label
-        self.status_label = tk.Label(
-            preview_frame,
-            text="Upload a photo and customize your poster",
-            font=('Arial', 10),
-            bg='white',
-            fg='#666666'
-        )
-        self.status_label.pack(pady=10)
-        
-        # Set initial template
-        self.apply_template_style("wanted")
-        
+        tk.Label(parent, text="Select Template:", font=("Georgia", 12, "bold"),
+                 fg="#F5DEB3", bg="#3D2818").pack(anchor="w", padx=20, pady=(20, 0))
+        templates = [("Classic Wanted", "classic"), ("Vintage Poster", "vintage"), ("Gold Rush", "gold")]
+        for text, mode in templates:
+            rb = tk.Radiobutton(parent, text=text, variable=self.selected_template, value=mode,
+                                font=("Georgia", 10), fg="#F5DEB3", bg="#3D2818", selectcolor="#8B4513",
+                                activebackground="#3D2818", activeforeground="#FFD700")
+            rb.pack(anchor="w", padx=20, pady=2)
+
+        # Generate & Save buttons
+        generate_btn = tk.Button(parent, text="GENERATE POSTER", font=("Georgia", 14, "bold"),
+                                 bg="#B8860B", fg="white", relief="raised", bd=4, padx=30, pady=12,
+                                 command=self.generate_poster)
+        generate_btn.pack(pady=30)
+
+        save_btn = tk.Button(parent, text="SAVE POSTER", font=("Georgia", 12, "bold"),
+                             bg="#CD853F", fg="white", relief="raised", bd=3, padx=20, pady=8,
+                             command=self.save_poster)
+        save_btn.pack(pady=10)
+
+    def create_label_entry(self, parent, label_text, text_var):
+        """Helper to create label + entry"""
+        frame = tk.Frame(parent, bg="#3D2818")
+        frame.pack(fill="x", padx=20, pady=10)
+        tk.Label(frame, text=label_text, font=("Georgia", 12, "bold"),
+                 fg="#F5DEB3", bg="#3D2818").pack(anchor="w")
+        entry = tk.Entry(frame, textvariable=text_var, font=("Georgia", 12),
+                         bg="#F5DEB3", fg="#2D1A0C", width=30)
+        entry.pack(fill="x", pady=5)
+
+    # ------------------------- Preview -------------------------
+    def create_preview(self, parent):
+        """Right panel for poster preview"""
+        tk.Label(parent, text="POSTER PREVIEW", font=("Georgia", 16, "bold"),
+                 fg="#FFD700", bg="#1A0F08").pack(pady=20)
+
+        self.preview_frame = tk.Frame(parent, bg="#8B4513", relief="sunken", bd=3, width=600, height=500)
+        self.preview_frame.pack(pady=20, padx=50, fill="both", expand=True)
+        self.preview_frame.pack_propagate(False)
+
+        self.preview_label = tk.Label(self.preview_frame,
+                                      text="Your poster will appear here\n\nUpload an image and click 'Generate Poster'",
+                                      font=("Georgia", 14), fg="#F5DEB3", bg="#8B4513", justify="center")
+        self.preview_label.pack(expand=True, fill="both")
+
+        tk.Label(parent, text="Tip: For best results, use square images (1:1 ratio)",
+                 font=("Georgia", 10, "italic"), fg="#CD853F", bg="#1A0F08").pack(pady=10)
+
+    # ------------------------- Image Upload -------------------------
     def upload_image(self):
-        file_path = filedialog.askopenfilename(
-            title="Select an image",
-            filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp")]
-        )
-        
+        """Upload image and correct orientation"""
+        file_path = filedialog.askopenfilename(title="Select an image",
+                                               filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp")])
         if file_path:
             try:
-                self.original_image = Image.open(file_path)
-                # Resize image to fit preview
-                self.original_image.thumbnail((400, 300), Image.Resampling.LANCZOS)
-                self.update_preview()
-                self.status_label.config(text="Image uploaded successfully!")
+                img = Image.open(file_path)
+                img = self.correct_orientation(img)
+                self.original_image = img
+                self.show_preview(img)
+                messagebox.showinfo("Success", "Image uploaded successfully!")
             except Exception as e:
-                messagebox.showerror("Error", f"Could not load image: {str(e)}")
-    
-    def apply_template_style(self, template):
-        colors = {
-            "wanted": "#8B4513",
-            "sheriff": "#5D4037", 
-            "reward": "#D2691E",
-            "show": "#CD853F"
-        }
-        
-        font_sizes = {
-            "wanted": (24, 16),
-            "sheriff": (22, 14),
-            "reward": (26, 17),
-            "show": (23, 15)
-        }
-        
-        # Update canvas background
-        self.preview_canvas.configure(bg=colors.get(template, "#8B4513"))
-        
-        # Update text fonts
-        name_size, location_size = font_sizes.get(template, (24, 16))
-        self.preview_canvas.itemconfig(
-            self.name_text_id, 
-            font=('Times New Roman', name_size, 'bold')
-        )
-        self.preview_canvas.itemconfig(
-            self.location_text_id,
-            font=('Times New Roman', location_size)
-        )
-    
-    def update_preview(self, *args):
-        # Update text
-        name = self.name_var.get() or "YOUR NAME HERE"
-        location = self.location_var.get() or "LOCATION"
-        
-        self.preview_canvas.itemconfig(self.name_text_id, text=name)
-        self.preview_canvas.itemconfig(self.location_text_id, text=location)
-        
-        # Update template style
-        template = self.template_var.get()
-        self.apply_template_style(template)
-        
-        # Update image if available
-        if self.original_image:
-            self.processed_image = self.apply_image_effects(
-                self.original_image.copy(), 
-                template
-            )
-            self.photo_image = ImageTk.PhotoImage(self.processed_image)
-            
-            # Clear previous image
-            self.preview_canvas.delete("image")
-            
-            # Add new image to canvas
-            self.preview_canvas.create_image(
-                250, 200,
-                image=self.photo_image,
-                tags="image"
-            )
-    
-    def apply_image_effects(self, image, template):
-        """Apply different effects based on template"""
-        effects = {
-            "wanted": {"sepia": 0.7, "contrast": 1.2},
-            "sheriff": {"grayscale": 0.5, "sepia": 0.3},
-            "reward": {"sepia": 0.5, "brightness": 0.9},
-            "show": {"sepia": 0.4, "contrast": 1.1}
-        }
-        
-        effect = effects.get(template, effects["wanted"])
-        
-        # Apply grayscale if specified
-        if effect.get("grayscale"):
-            image = image.convert("L")
-            image = image.convert("RGB")
-        
-        # Apply sepia effect
-        if effect.get("sepia"):
-            # Simple sepia effect
-            sepia = Image.new('RGB', image.size, (112, 66, 20))
-            image = Image.blend(image, sepia, effect["sepia"])
-        
-        # Apply contrast
-        if effect.get("contrast"):
-            enhancer = ImageEnhance.Contrast(image)
-            image = enhancer.enhance(effect["contrast"])
-        
-        # Apply brightness
-        if effect.get("brightness"):
-            enhancer = ImageEnhance.Brightness(image)
-            image = enhancer.enhance(effect["brightness"])
-        
+                messagebox.showerror("Error", f"Could not open image: {str(e)}")
+
+    def correct_orientation(self, image):
+        """Correct image orientation using EXIF data"""
+        try:
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = dict(image._getexif().items())
+            if exif[orientation] == 3:
+                image = image.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                image = image.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                image = image.rotate(90, expand=True)
+        except:
+            pass
         return image
-    
+
+    def show_preview(self, image):
+        """Show resized preview in GUI"""
+        preview_size = (self.preview_frame.winfo_width(), self.preview_frame.winfo_height())
+        img_copy = image.copy()
+        img_copy.thumbnail(preview_size, Image.Resampling.LANCZOS)
+        self.preview_image = ImageTk.PhotoImage(img_copy)
+        self.preview_label.config(image=self.preview_image, text="")
+
+    # ------------------------- Poster Generation -------------------------
     def generate_poster(self):
+        """Generate poster with selected template"""
         if not self.original_image:
             messagebox.showwarning("Warning", "Please upload an image first!")
             return
-        
-        # Create final poster
+        if not self.user_name.get() or not self.user_location.get():
+            messagebox.showwarning("Warning", "Please enter both name and location!")
+            return
+
         try:
-            # Create a larger version for the final poster
-            final_image = self.original_image.copy()
-            final_image = final_image.resize((800, 600), Image.Resampling.LANCZOS)
-            final_image = self.apply_image_effects(final_image, self.template_var.get())
-            
-            # In a complete implementation, you would add text overlays here
-            # and save the final composition
-            
-            messagebox.showinfo("Success", "Poster generated successfully!\nClick 'Download Poster' to save it.")
-            
+            poster = self.original_image.copy()
+            template = self.selected_template.get()
+            if template == "classic":
+                poster = self.apply_classic_style(poster)
+            elif template == "vintage":
+                poster = self.apply_vintage_style(poster)
+            elif template == "gold":
+                poster = self.apply_gold_style(poster)
+
+            self.processed_image = poster
+            self.show_preview(poster)
+            messagebox.showinfo("Success", "Poster generated successfully!")
         except Exception as e:
             messagebox.showerror("Error", f"Could not generate poster: {str(e)}")
-    
-    def download_poster(self):
+
+    def get_font(self, size, bold=False):
+        """Get font with fallback options"""
+        font_paths = [
+            "old-english.ttf",
+            "times.ttf",
+            "timesbd.ttf",
+            "arial.ttf",
+            "arialbd.ttf",
+            "/System/Library/Fonts/Times.ttc",
+            "/usr/share/fonts/truetype/freefont/FreeSerif.ttf"
+        ]
+
+        try:
+            if bold:
+                # Try bold fonts first
+                for path in ["timesbd.ttf", "arialbd.ttf", "georgiab.ttf"]:
+                    try:
+                        return ImageFont.truetype(path, size)
+                    except:
+                        continue
+            # Try regular fonts
+            for path in font_paths:
+                try:
+                    return ImageFont.truetype(path, size)
+                except:
+                    continue
+        except:
+            pass
+
+        # Final fallback - use default font but with size scaling
+        try:
+            return ImageFont.load_default()
+        except:
+            # Ultimate fallback
+            return ImageFont.load_default()
+
+    # ------------------------- Poster Styles -------------------------
+    def apply_classic_style(self, image):
+        """Classic 'WANTED' poster style"""
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        width, height = image.size
+
+        # Create larger poster with more space for text
+        new_width, new_height = width + 100, height + 300
+        poster = Image.new('RGB', (new_width, new_height), '#8B4513')
+        poster.paste(image, (50, 100))  # Move image down to make room for larger header
+
+        draw = ImageDraw.Draw(poster)
+
+        # Get fonts with proper sizes - using our new font loading method
+        wanted_font = self.get_font(80)  # Very large for WANTED
+        dead_or_alive_font = self.get_font(28, bold=True)  # Bold for DEAD OR ALIVE
+        name_font = self.get_font(26)  # Medium for name
+        location_font = self.get_font(22)  # Smaller for location
+        reward_font = self.get_font(32, bold=True)  # Bold for REWARD
+        amount_font = self.get_font(42, bold=True)  # Largest for the amount
+
+        # Text layout with proper font sizes:
+        # 1. Big WANTED at the top
+        self.draw_centered_text(draw, "WANTED", new_width // 2, 40, wanted_font, "#FFD700")
+
+        # 2. DEAD OR ALIVE slightly below
+        self.draw_centered_text(draw, "DEAD OR ALIVE", new_width // 2, 90, dead_or_alive_font,
+                                "#FF0000")  # Red for emphasis
+
+        # 3. User image (already placed)
+
+        # 4. Name and location below image
+        self.draw_centered_text(draw, self.user_name.get(), new_width // 2, height + 130, name_font, "white")
+        self.draw_centered_text(draw, f"Last seen in {self.user_location.get()}", new_width // 2, height + 170,
+                                location_font, "white")
+
+        # 5. REWARD header
+        self.draw_centered_text(draw, "REWARD", new_width // 2, height + 220, reward_font, "#FFD700")
+
+        # 6. Large reward amount
+        self.draw_centered_text(draw, "$2,000,000", new_width // 2, height + 270, amount_font, "#FFD700")
+
+        return poster
+
+    def apply_vintage_style(self, image):
+        """Vintage poster style with sepia effect"""
+        sepia = self.apply_sepia_filter(image)
+        width, height = sepia.size
+        border_size = 50
+        vintage_bg = Image.new('RGB', (width + border_size * 2, height + border_size * 2), '#5D4037')
+        vintage_bg.paste(sepia, (border_size, border_size))
+        draw = ImageDraw.Draw(vintage_bg)
+
+        # Use different font sizes for vintage style
+        title_font = self.get_font(36, bold=True)
+        subtitle_font = self.get_font(24)
+
+        self.draw_centered_text(draw, f"{self.user_name.get()}",
+                                width // 2 + border_size, height + border_size + 10, title_font, "#D7CCC8")
+        self.draw_centered_text(draw, f"{self.user_location.get()}",
+                                width // 2 + border_size, height + border_size + 50, subtitle_font, "#BCAAA4")
+        return vintage_bg
+
+    def apply_gold_style(self, image):
+        """Gold Rush poster style with border and gold overlay"""
+        width, height = image.size
+
+        # Base poster with gold background and brown border
+        gold_bg = Image.new('RGB', (width + 80, height + 150), '#FFD700')
+        border = Image.new('RGB', (width + 60, height + 130), '#8B4513')
+        gold_bg.paste(border, (10, 10))
+        gold_bg.paste(image, (30, 30))
+
+        # Apply gold filter overlay
+        overlay = Image.new('RGB', gold_bg.size, (255, 215, 0))  # Gold color
+        gold_bg = Image.blend(gold_bg, overlay, alpha=0.2)  # 20% gold tint
+
+        draw = ImageDraw.Draw(gold_bg)
+
+        # Fonts
+        title_font = self.get_font(36, bold=True)
+        text_font = self.get_font(28, bold=True)  # Larger font for name
+
+        # Add "GOLD RUSH" at bottom
+        self.draw_centered_text(draw, "GOLD RUSH", gold_bg.width // 2, height + 80, title_font, "#8B4513")
+
+        # Add user's name under the image
+        self.draw_centered_text(draw, f"{self.user_name.get()}", gold_bg.width // 2, height + 40, text_font, "#8B4513")
+
+        return gold_bg
+
+    def apply_sepia_filter(self, image):
+        """Apply sepia color filter to give the image a warm, vintage look"""
+
+        # Ensure the image is in RGB mode (3 color channels: Red, Green, Blue)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        # Make a copy so the original image isn't modified
+        sepia = image.copy()
+
+        # Access the pixel data of the image
+        pixels = sepia.load()
+
+        # Loop through every pixel in the image
+        for i in range(sepia.width):
+            for j in range(sepia.height):
+                r, g, b = pixels[i, j]  # Get original red, green, blue values
+
+                # Apply the sepia formula to calculate new RGB values
+                tr = int(0.393 * r + 0.769 * g + 0.189 * b)  # New red value
+                tg = int(0.349 * r + 0.686 * g + 0.168 * b)  # New green value
+                tb = int(0.272 * r + 0.534 * g + 0.131 * b)  # New blue value
+
+                pixels[i, j] = (min(255, tr), min(255, tg), min(255, tb))
+
+        # Return the sepia-toned image
+        return sepia
+
+    # ------------------------- Helpers -------------------------
+    def draw_centered_text(self, draw, text, x, y, font, color):
+        """Draw centered text"""
+        draw.text((x, y), text, font=font, fill=color, anchor="mt")
+
+    # ------------------------- Save Poster -------------------------
+    def save_poster(self):
+        """Save generated poster"""
         if not self.processed_image:
             messagebox.showwarning("Warning", "Please generate a poster first!")
             return
-        
-        file_path = filedialog.asksaveasfilename(
-            defaultextension=".png",
-            filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg"), ("All files", "*.*")],
-            title="Save Poster As"
-        )
-        
+        file_path = filedialog.asksaveasfilename(defaultextension=".png",
+                                                 filetypes=[("PNG files", "*.png"),
+                                                            ("JPEG files", "*.jpg"),
+                                                            ("All files", "*.*")])
         if file_path:
             try:
-                # Create final composition
-                final_width, final_height = 800, 600
-                final_image = Image.new('RGB', (final_width, final_height), '#8B4513')
-                
-                # Add processed image
-                img = self.original_image.copy()
-                img.thumbnail((500, 400), Image.Resampling.LANCZOS)
-                img = self.apply_image_effects(img, self.template_var.get())
-                
-                # Calculate position to center the image
-                x = (final_width - img.width) // 2
-                y = (final_height - img.height) // 2 - 50
-                final_image.paste(img, (x, y))
-                
-                # Save the image
-                final_image.save(file_path)
-                messagebox.showinfo("Success", f"Poster saved as:\n{file_path}")
-                
+                self.processed_image.save(file_path)
+                messagebox.showinfo("Success", f"Poster saved successfully!\n{file_path}")
             except Exception as e:
                 messagebox.showerror("Error", f"Could not save poster: {str(e)}")
 
-def main():
-    root = tk.Tk()
-    app = WildWestPosterGenerator(root)
-    root.mainloop()
+    # ------------------------- Run GUI -------------------------
+    def run(self):
+        self.window.mainloop()
 
+
+# ------------------------- Main -------------------------
 if __name__ == "__main__":
-    main()
+    app = WildWestPosterGenerator()
+    app.run()

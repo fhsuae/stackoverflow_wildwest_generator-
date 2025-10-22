@@ -12,54 +12,57 @@ Wildwest–themed poster generator software for the KU High School Engineering c
  
 ### Dependencies
  
-Please install the pip requirements:
+Please make sure you have Python 3.x installed.Then install the pip requirements:
  
 ```
  pip install -r requirements.txt
 ```
+* Pillow (for image processing)
+
+* tkinter (for GUI; usually comes with Python)
 
 ### Installing
- 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
- 
+
+1. Download the program 
+
+* Clone the repository or download the ZIP: 
+
+https://github.com/fhsuae/stackoverflow_wildwest_generator-
+
+2. Optional font setup
+
+* The program uses several fallback fonts. To enable the “Old English” style font, place old-english.ttf in the project folder or install it on your system.
+3. Directory structure
+Ensure the project folder contains:
+* main.py (or your main script)
+* requirements.txt
+* Optional font files
+
 ### Executing program
  
-* How to run the program
+
+* Run the program from the terminal or command prompt:
 
 ```
 python main.py
 ```
- 
-## Help
- 
-Any advice for common problems or issues.
-```
-command to run if program contains helper info
-```
+Using the GUI: 
+1. Enter your Name and Location
+2. Upload an image (best if square ratio)
+3. Select a poster template: Classic, Vintage, or Gold
+4. Click Generate Poster to preview
+5. Click Save Poster to save the final image
  
 ## Authors
- 
-Contributors names and contact info
- 
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
- 
-## Version History
- 
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
- 
-## License
- 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+* Alex Escobedo
+* Sidi Chen
+* William Mooney
+* Sunny Zou
+* Shuvayu Goswami
+
  
 ## Acknowledgments
- 
-Inspiration, code snippets, etc.
+
 * [Tkinter Documentation](https://docs.python.org/3/library/tk.html)
 * [PIL Documentation](https://pillow.readthedocs.io/en/stable/)
 
