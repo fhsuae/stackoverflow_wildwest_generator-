@@ -9,9 +9,9 @@ class WildWestPosterGenerator:
         self.window = tk.Tk()
         self.window.title("Wild West Poster Generator - ")
         self.window.geometry("1200x800")
-        self.window.iconbitmap("horseshoe.ico")
         self.window.config(bg="#2D1A0C")  # Dark brown background
-        self.window.eval('tk::PlaceWindow . center')  # Center window
+        # self.window.eval('tk::PlaceWindow . center')  # Center window
+        self.window.state('zoomed')
 
         # Initialize variables
         self.original_image = None
@@ -230,9 +230,9 @@ class WildWestPosterGenerator:
         width, height = image.size
 
         # Create larger poster with more space for text
-        new_width, new_height = width + 100, height + 300
+        new_width, new_height = width + 120, height + 325
         poster = Image.new('RGB', (new_width, new_height), '#8B4513')
-        poster.paste(image, (50, 100))  # Move image down to make room for larger header
+        poster.paste(image, (50, 125))  # Move image down to make room for larger header
 
         draw = ImageDraw.Draw(poster)
 
