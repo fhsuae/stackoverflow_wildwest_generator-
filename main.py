@@ -1,7 +1,15 @@
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw, ImageFont, ExifTags
+import cv2
+import numpy as np
+import os
 
+# Variable for face recognition
+output_dir = "detected_faces"
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 class WildWestPosterGenerator:
     def __init__(self):
@@ -15,6 +23,7 @@ class WildWestPosterGenerator:
 
         # Initialize variables
         self.original_image = None
+        self.face_image = None
         self.processed_image = None
         self.preview_image = None
         self.selected_template = tk.StringVar(value="classic")
@@ -82,7 +91,7 @@ class WildWestPosterGenerator:
             rb.pack(anchor="w", padx=20, pady=2)
 
         # Additional general purpose button (moved above Generate)
-        general_btn = tk.Button(parent, text="Secret Feature", font=("Georgia", 12, "bold"),
+        general_btn = tk.Button(parent, text="Face Recognition", font=("Georgia", 12, "bold"),
                                 bg="#A0522D", fg="white", relief="raised", bd=3, padx=20, pady=8,
                                 command=self.general_function)
         general_btn.pack(pady=(30, 10))
@@ -227,6 +236,28 @@ class WildWestPosterGenerator:
         except:
             # Ultimate fallback
             return ImageFont.load_default()
+        
+    # Face Recognition
+    def face_recognition(self, image):
+        img = cv2.imread(self.original_image())
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        for (x, y, w, h) in faces:
+            cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        for index, (x, y, w, h) in enumerate(faces):
+            # Slice the image array to get the face region (crop the image)
+            # The syntax is img[y_start:y_end, x_start:x_end]
+            cropped_face = image[y:y+h, x:x+w]
+
+            # Define the output filename, for example: face0.jpg, face1.jpg, etc.
+            output_filename = os.path.join(output_dir, f"face{index}.jpg")
+
+            # Save the cropped face image using cv2.imwrite()
+            cv2.imwrite(output_filename, cropped_face)
+
+            print(f"Saved {output_filename}")
+            self.face_image = cropped_face
 
     # ------------------------- Poster Styles -------------------------
     def apply_classic_style(self, image):
@@ -383,7 +414,9 @@ class WildWestPosterGenerator:
     def general_function(self):
         """General purpose function that can be customized later"""
         # Add your custom functionality here
-        messagebox.showinfo("Secret Feature")
+        self.processed_image = self.face_image
+        messagebox.showinfo("Face Recognition")
+        
 
     # ------------------------- Run GUI -------------------------
     def run(self):
